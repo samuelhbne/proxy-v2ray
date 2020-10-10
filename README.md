@@ -76,7 +76,7 @@ VPS-Server: 12.34.56.78
 V2Ray-vmess-URI: vmess://eydhZGQnOicxMi4zNC41Ni43OCcsJ2FpZCc6JzE2JywnaWQnOidiZWMyNGQ5Ni00MTBmLTQ3MjMtOGIzYi00Njk4N2ExZDllZDgnLCduZXQnOid0Y3AnLCdwb3J0JzonMTAwODYnLCdwcyc6J1ZMUC1WMlJBWSd9Cg==
 ```
 
-![QR code example](https://github.com/samuelhbne/vpn-launchpad/blob/master/images/qr-v2ray.png)
+![QR code example](https://github.com/samuelhbne/proxy-v2ray/blob/master/images/qr-v2ray.png)
 
 ## How to stop and remove the running container
 
