@@ -66,7 +66,7 @@ OrgId:          TWITT
 - dig should return resolved IP recorders of twitter.com if DNS server works properly.
 - Whois should return "OrgId: TWITT". That means the IP address returned from dig query belongs to twitter.com indeed, hence untaminated.
 - Whois was actually running inside the proxy container through the proxy tunnel to avoid potential access blocking.
-- Please have a look over the sibling project [server-v2ray](https://github.com/samuelhbne/vpn-launchpad/tree/master/server-v2ray) if you'd like to set a V2ray server.
+- Please have a look over the sibling project [server-v2ray](https://github.com/samuelhbne/server-v2ray) if you'd like to set a V2ray server.
 
 ## How to get the V2Ray QR code for mobile connection
 
