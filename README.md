@@ -5,8 +5,8 @@ V2ray client container with SOCKS5/HTTP/DNS proxy and QR code support. Running o
 ## [Optional] How to build proxy-v2ray docker image
 
 ```shell
-$ git clone https://github.com/samuelhbne/vpn-launchpad.git
-$ cd vpn-launchpad/proxy-v2ray
+$ git clone https://github.com/samuelhbne/proxy-v2ray.git
+$ cd proxy-v2ray
 $ docker build -t samuelhbne/proxy-v2ray:amd64 -f Dockerfile.amd64 .
 ...
 ```
