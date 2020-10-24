@@ -17,7 +17,7 @@ eval set -- "$TEMP"
 while true ; do
 	case "$1" in
 		-h|--host)
-			VHOST="$2"
+			HOST="$2"
 			shift 2
 			;;
 		-u|--uuid)
@@ -51,13 +51,13 @@ while true ; do
 	esac
 done
 
-if [ -z "${VHOST}" ] || [ -z "${UUID}" ]; then
+if [ -z "${HOST}" ] || [ -z "${UUID}" ]; then
 	usage
 	exit 2
 fi
 
-if [ -z "${VPORT}" ]; then
-	VPORT=10086
+if [ -z "${PORT}" ]; then
+	PORT=10086
 fi
 
 if [ -z "${ALTERID}" ]; then
@@ -81,9 +81,8 @@ jq "(.inbounds[] | select( .protocol == \"socks\") | .listen) |= \"${LSTNADDR}\"
 jq "(.inbounds[] | select( .protocol == \"socks\") | .port) |= \"${SOCKSPORT}\"" vsv.json.1 >vsv.json.2
 jq "(.inbounds[] | select( .protocol == \"socks\") | .settings.ip) |= \"0.0.0.0\"" vsv.json.2>vsv.json.3
 jq "(.outbounds[] | select( .protocol == \"freedom\") | .protocol) |= \"vmess\"" vsv.json.3>vsv.json.4
-jq ".outbounds[0].settings |= . + { \"vnext\": [{\"address\": \"${VHOST}\", \"port\": ${VPORT}, \"users\": [{\"id\": \"${UUID}\", \"alterId\": ${ALTERID}, \"security\": \"${SECURITY}\", \"level\": ${LEVEL}}]}] }" vsv.json.4>client.json
+jq ".outbounds[0].settings |= . + { \"vnext\": [{\"address\": \"${HOST}\", \"port\": ${PORT}, \"users\": [{\"id\": \"${UUID}\", \"alterId\": ${ALTERID}, \"security\": \"${SECURITY}\", \"level\": ${LEVEL}}]}] }" vsv.json.4>client.json
 
 /usr/bin/nohup /usr/bin/v2ray/v2ray -config=/tmp/client.json &
 /root/polipo/polipo -c /root/polipo/config
 exec /usr/bin/dnscrypt-proxy -config /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-
