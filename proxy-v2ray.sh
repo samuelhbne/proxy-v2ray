@@ -57,7 +57,7 @@ if [ -z "$VHOST" ] || [ -z "$V2RAYPORT" ] || [ -z "$V2RAYUUID" ]; then
 	exit 1
 fi
 
-if [ `docker ps -a| grep $CTNNAME|wc -l` -gt 0 ]; then
+if [ `docker ps -a|grep $IMGNAME:$TARGET|grep $CTNNAME|wc -l` -gt 0 ]; then
         docker stop $CTNNAME >/dev/null
 	docker rm $CTNNAME >/dev/null
 fi
