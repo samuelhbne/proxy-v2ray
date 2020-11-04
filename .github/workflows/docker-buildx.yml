@@ -72,7 +72,7 @@ jobs:
             file: ./Dockerfile.arm
             platforms: linux/arm/v7
             push: true
-            tags: ${{ github.repository }}:arm
+            tags: ${{ github.repository }}:armv7
       -
         name: Build and push ARM32v6
         uses: docker/build-push-action@v2
