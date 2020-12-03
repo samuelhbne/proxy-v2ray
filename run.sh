@@ -4,11 +4,12 @@ usage() {
 	echo "proxy-v2ray -h|--host <v2ray-host> -u|--uuid <vmess-uuid> [-p|--port <port-num>] [-l|--level <level>] [-a|--alterid <alterid>] [-s|--security <client-security>]"
 	echo "    -h|--host <v2ray-host>            V2ray server host name or IP address"
 	echo "    -u|--uuid <vmess-uuid>            Vmess UUID for initial V2ray connection"
-	echo "    -p|--port <port-num>              [Optional] Port number for V2ray connection, default 10086"
+	echo "    -p|--port <port-num>              [Optional] Port number for V2ray connection, default 443"
 	echo "    -l|--level <level>                [Optional] Level number for V2ray service access, default 0"
 	echo "    -a|--alterid <alterid>            [Optional] AlterID number for V2ray service access, default 16"
 	echo "    -s|--security <client-security>   [Optional] V2ray client security setting, default 'auto'"
 	echo "    --wp <websocket-path>             [Optional] Connect via websocket with given websocket-path, e.g. '/wsocket'"
+	echo "    --sni <sni-hostname>              [Optional] SNI hostname when connect via websocket, default same as v2ray-host"
 	echo "    --no-ssl                          [Optional] Disable ssl support when connect via websocket, only for testing"
 }
 
@@ -51,6 +52,10 @@ while true ; do
 				exit 1
 			fi
 			;;
+		--sni)
+			SNI="$2"
+			shift 2
+			;;
 		--no-ssl)
 			NOSSL="true"
 			shift 1
@@ -72,7 +77,7 @@ if [ -z "${HOST}" ] || [ -z "${UUID}" ]; then
 fi
 
 if [ -z "${PORT}" ]; then
-	PORT=10086
+	PORT=443
 fi
 
 if [ -z "${ALTERID}" ]; then
@@ -87,16 +92,21 @@ if [ -z "${SECURITY}" ]; then
 	SECURITY="auto"
 fi
 
+if [ -z "${SNI}" ]; then
+	SNI="${HOST}"
+fi
+
 LSTNADDR="0.0.0.0"
 SOCKSPORT=1080
 
 cd /tmp
-cp -a /usr/bin/v2ray/vpoint_socks_vmess.json vsv.json
-jq "(.inbounds[] | select( .protocol == \"socks\") | .listen) |= \"${LSTNADDR}\"" vsv.json >vsv.json.1
-jq "(.inbounds[] | select( .protocol == \"socks\") | .port) |= \"${SOCKSPORT}\"" vsv.json.1 >vsv.json.2
-jq "(.inbounds[] | select( .protocol == \"socks\") | .settings.ip) |= \"0.0.0.0\"" vsv.json.2>vsv.json.3
-jq "(.outbounds[] | select( .protocol == \"freedom\") | .protocol) |= \"vmess\"" vsv.json.3>vsv.json.4
-jq ".outbounds[0].settings |= . + { \"vnext\": [{\"address\": \"${HOST}\", \"port\": ${PORT}, \"users\": [{\"id\": \"${UUID}\", \"alterId\": ${ALTERID}, \"security\": \"${SECURITY}\", \"level\": ${LEVEL}}]}] }" vsv.json.4>client.json
+cat /usr/bin/v2ray/vpoint_socks_vmess.json \
+	| jq "(.inbounds[] | select( .protocol == \"socks\") | .listen) |= \"${LSTNADDR}\"" - \
+	| jq "(.inbounds[] | select( .protocol == \"socks\") | .port) |= \"${SOCKSPORT}\"" - \
+	| jq "(.inbounds[] | select( .protocol == \"socks\") | .settings.ip) |= \"0.0.0.0\"" - \
+	| jq "(.outbounds[] | select( .protocol == \"freedom\") | .protocol) |= \"vmess\"" - \
+	| jq ".outbounds[0].settings |= . + { \"vnext\": [{\"address\": \"${HOST}\", \"port\": ${PORT}, \"users\": [{\"id\": \"${UUID}\", \"alterId\": ${ALTERID}, \"security\": \"${SECURITY}\", \"level\": ${LEVEL}}]}] }" - \
+	>client.json
 
 if [ -n "${WSPATH}" ]; then
 	cat client.json \
@@ -104,6 +114,11 @@ if [ -n "${WSPATH}" ]; then
 		>client-ws.json
 	mv client-ws.json client.json
 fi
+
+cat client.json \
+	| jq "((.outbounds[] | select( .protocol == \"vmess\")) | .streamSettings) += {\"tlsSettings\":{\"serverName\":\"${SNI}\",\"allowInsecure\":\"false\"}}" - \
+	>client-ws.json
+mv client-ws.json client.json
 
 if [ -n "${NOSSL}" ]; then
 	cat client.json \
