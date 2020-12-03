@@ -13,7 +13,7 @@ RUN git clone --progress https://github.com/v2fly/v2ray-core.git . && \
     bash ./release/user-package.sh nosource amd64 codename=$(git describe --tags) buildname=v2ray-vlp abpathtgz=/tmp/v2ray.tgz
 
 
-FROM golang:1.15-alpine
+FROM alpine:3.12
 
 COPY --from=builder /tmp/polipo /root/polipo
 
@@ -27,10 +27,6 @@ RUN apk update && apk add bash openssl jq curl bind-tools whois \
 	&& update-ca-certificates
 RUN npm config set unsafe-perm true
 RUN npm install -g qrcode-terminal
-
-ADD run.sh /run.sh
-ADD status.sh /status.sh
-RUN chmod 755 /*.sh
 
 ENV LSTNADDR="0.0.0.0"
 ENV SOCKSPORT="1080"
@@ -47,5 +43,9 @@ RUN echo "proxyAddress=$LSTNADDR" >>/root/polipo/config
 RUN echo "proxyPort=$HTTPPORT" >>/root/polipo/config
 RUN echo "daemonise=true" >>/root/polipo/config
 RUN echo "diskCacheRoot=" >>/root/polipo/config
+
+ADD run.sh /run.sh
+ADD status.sh /status.sh
+RUN chmod 755 /*.sh
 
 ENTRYPOINT ["/run.sh"]
