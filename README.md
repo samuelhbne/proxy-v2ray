@@ -21,14 +21,18 @@ $ docker build -t samuelhbne/proxy-v2ray:amd64 -f Dockerfile.amd64 .
 
 ```shell
 $ docker run --rm -it samuelhbne/proxy-v2ray:amd64
-proxy-v2ray -h|--host <v2ray-host> -u|--uuid <vmess-uuid> [-p|--port <port-num>] [-l|--level <level>] [-a|--alterid <alterid>] [-s|--security <client-security>]
+proxy-v2ray -h|--host <v2ray-host> -u|--uuid <vmess-uuid> [-p|--port <port-num>] [-l|--level <level>] [-a|--alterid <alterid>] [-s|--security <client-security>] [--wp <websocket-path>] [--sni <sni-hostname>] [--no-ssl]
     -h|--host <v2ray-host>            V2ray server host name or IP address
     -u|--uuid <vmess-uuid>            Vmess UUID for initial V2ray connection
-    -p|--port <port-num>              [Optional] Port number for V2ray connection, default 10086
+    -p|--port <port-num>              [Optional] Port number for V2ray connection, default 443
     -l|--level <level>                [Optional] Level number for V2ray service access, default 0
     -a|--alterid <alterid>            [Optional] AlterID number for V2ray service access, default 16
     -s|--security <client-security>   [Optional] V2ray client security setting, default 'auto'
-$ docker run --name proxy-v2ray -p 21080:1080 -p 65353:53/udp -p 28123:8123 -d samuelhbne/proxy-v2ray:amd64 -h 12.34.56.78 -u bec24d96-410f-4723-8b3b-46987a1d9ed8
+    --wp <websocket-path>             [Optional] Connect via websocket with given websocket-path, e.g. '/wsocket'
+    --sni <sni-hostname>              [Optional] SNI hostname when connect via websocket, default same as v2ray-host
+    --no-ssl                          [Optional] Disable ssl support when connect via websocket, only for testing
+
+$ docker run --name proxy-v2ray -p 21080:1080 -p 65353:53/udp -p 28123:8123 -d samuelhbne/proxy-v2ray:amd64 -h 12.34.56.78 -u bec24d96-410f-4723-8b3b-46987a1d9ed8 --wp /wsocket --sni mydomain.duckdns.org
 ...
 ```
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 usage() {
-	echo "proxy-v2ray -h|--host <v2ray-host> -u|--uuid <vmess-uuid> [-p|--port <port-num>] [-l|--level <level>] [-a|--alterid <alterid>] [-s|--security <client-security>]"
+	echo "proxy-v2ray -h|--host <v2ray-host> -u|--uuid <vmess-uuid> [-p|--port <port-num>] [-l|--level <level>] [-a|--alterid <alterid>] [-s|--security <client-security>] [--wp <websocket-path>] [--sni <sni-hostname>] [--no-ssl]"
 	echo "    -h|--host <v2ray-host>            V2ray server host name or IP address"
 	echo "    -u|--uuid <vmess-uuid>            Vmess UUID for initial V2ray connection"
 	echo "    -p|--port <port-num>              [Optional] Port number for V2ray connection, default 443"
