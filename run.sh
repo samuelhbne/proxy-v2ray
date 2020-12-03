@@ -8,9 +8,11 @@ usage() {
 	echo "    -l|--level <level>                [Optional] Level number for V2ray service access, default 0"
 	echo "    -a|--alterid <alterid>            [Optional] AlterID number for V2ray service access, default 16"
 	echo "    -s|--security <client-security>   [Optional] V2ray client security setting, default 'auto'"
+	echo "    --wp <websocket-path>             [Optional] Connect via websocket with given websocket-path, e.g. '/wsocket'"
+	echo "    --no-ssl                          [Optional] Disable ssl support when connect via websocket, only for testing"
 }
 
-TEMP=`getopt -o h:u:p:l:a:s: --long host:,uuid:,port:,level:,alterid:security: -n "$0" -- $@`
+TEMP=`getopt -o h:u:p:l:a:s: --long host:,uuid:,port:,level:,alterid:,security:,wp:,no-ssl -n "$0" -- $@`
 if [ $? != 0 ] ; then usage; exit 1 ; fi
 
 eval set -- "$TEMP"
@@ -39,6 +41,19 @@ while true ; do
 		-s|--security)
 			SECURITY="$2"
 			shift 2
+			;;
+		--wp)
+			if [[ $2 =~ ^\/[A-Za-z0-9_-]{1,16}$ ]]; then
+				WSPATH="$2"
+				shift 2
+			else
+				echo "Websocket path must be 1-16 aplhabets, numbers, '-' or '_' started with '/'"
+				exit 1
+			fi
+			;;
+		--no-ssl)
+			NOSSL="true"
+			shift 1
 			;;
 		--)
 			shift
@@ -82,6 +97,24 @@ jq "(.inbounds[] | select( .protocol == \"socks\") | .port) |= \"${SOCKSPORT}\""
 jq "(.inbounds[] | select( .protocol == \"socks\") | .settings.ip) |= \"0.0.0.0\"" vsv.json.2>vsv.json.3
 jq "(.outbounds[] | select( .protocol == \"freedom\") | .protocol) |= \"vmess\"" vsv.json.3>vsv.json.4
 jq ".outbounds[0].settings |= . + { \"vnext\": [{\"address\": \"${HOST}\", \"port\": ${PORT}, \"users\": [{\"id\": \"${UUID}\", \"alterId\": ${ALTERID}, \"security\": \"${SECURITY}\", \"level\": ${LEVEL}}]}] }" vsv.json.4>client.json
+
+if [ -n "${WSPATH}" ]; then
+	cat client.json \
+		| jq "(.outbounds[] | select( .protocol == \"vmess\")) +=  {\"streamSettings\":{\"network\":\"ws\",\"wsSettings\":{\"path\":\"${WSPATH}\"}}}" - \
+		>client-ws.json
+	mv client-ws.json client.json
+fi
+
+if [ -n "${NOSSL}" ]; then
+	cat client.json \
+		| jq "((.outbounds[] | select( .protocol == \"vmess\")) | .streamSettings) += {\"security\":\"none\"}" - \
+		>client-ws.json
+else
+	cat client.json \
+		| jq "((.outbounds[] | select( .protocol == \"vmess\")) | .streamSettings) += {\"security\":\"tls\"}" - \
+		>client-ws.json
+fi
+mv client-ws.json client.json
 
 /usr/bin/nohup /usr/bin/v2ray/v2ray -config=/tmp/client.json &
 /root/polipo/polipo -c /root/polipo/config
