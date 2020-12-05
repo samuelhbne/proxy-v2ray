@@ -100,7 +100,7 @@ LSTNADDR="0.0.0.0"
 SOCKSPORT=1080
 
 cd /etc/v2ray
-cat /etc/v2ray/vpoint_socks_vmess.json \
+cat vpoint_socks_vmess.json \
 	| jq "(.inbounds[] | select( .protocol == \"socks\") | .listen) |= \"${LSTNADDR}\"" - \
 	| jq "(.inbounds[] | select( .protocol == \"socks\") | .port) |= \"${SOCKSPORT}\"" - \
 	| jq "(.inbounds[] | select( .protocol == \"socks\") | .settings.ip) |= \"0.0.0.0\"" - \
