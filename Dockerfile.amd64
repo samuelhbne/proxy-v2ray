@@ -11,15 +11,15 @@ RUN cd /tmp && git clone https://github.com/jech/polipo && cd polipo && make
 WORKDIR /go/src/v2ray.com/core
 RUN git clone --progress https://github.com/v2fly/v2ray-core.git . && \
     bash ./release/user-package.sh nosource codename=$(git describe --tags) buildname=v2ray-vlp abpathtgz=/tmp/v2ray.tgz
-
+RUN mkdir -p /tmp/v2ray && tar xvf /tmp/v2ray.tgz -C /tmp/v2ray/
 
 FROM alpine:3.12
 
-COPY --from=builder /tmp/polipo /root/polipo
+COPY --from=builder /tmp/polipo/polipo /usr/local/bin/polipo
+COPY --from=builder /tmp/v2ray/ /etc/v2ray/
 
-RUN mkdir -p /usr/bin/v2ray/
-COPY --from=builder /tmp/v2ray.tgz /tmp
-RUN tar xvfz /tmp/v2ray.tgz -C /usr/bin/v2ray
+RUN mv /etc/v2ray/v2ray /usr/local/bin/
+RUN mv /etc/v2ray/v2ctl /usr/local/bin/
 
 RUN apk update && apk add bash openssl jq curl bind-tools whois \
 	dnscrypt-proxy proxychains-ng ca-certificates \
@@ -38,11 +38,11 @@ RUN sed -i "s/^dnscrypt_servers = .*/dnscrypt_servers = false/g" /etc/dnscrypt-p
 RUN sed -i "s/^doh_servers = .*/doh_servers = true/g" /etc/dnscrypt-proxy/dnscrypt-proxy.toml
 RUN sed -i "s/^socks4.*/socks5\t127.0.0.1 1080/g" /etc/proxychains/proxychains.conf
 
-RUN echo "socksParentProxy=localhost:$SOCKSPORT" >>/root/polipo/config
-RUN echo "proxyAddress=$LSTNADDR" >>/root/polipo/config
-RUN echo "proxyPort=$HTTPPORT" >>/root/polipo/config
-RUN echo "daemonise=true" >>/root/polipo/config
-RUN echo "diskCacheRoot=" >>/root/polipo/config
+RUN echo "socksParentProxy=localhost:$SOCKSPORT" >>/etc/polipo.conf
+RUN echo "proxyAddress=$LSTNADDR" >>/etc/polipo.conf
+RUN echo "proxyPort=$HTTPPORT" >>/etc/polipo.conf
+RUN echo "daemonise=true" >>/etc/polipo.conf
+RUN echo "diskCacheRoot=" >>/etc/polipo.conf
 
 ADD run.sh /run.sh
 ADD status.sh /status.sh

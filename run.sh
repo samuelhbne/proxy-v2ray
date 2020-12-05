@@ -99,8 +99,8 @@ fi
 LSTNADDR="0.0.0.0"
 SOCKSPORT=1080
 
-cd /tmp
-cat /usr/bin/v2ray/vpoint_socks_vmess.json \
+cd /etc/v2ray
+cat /etc/v2ray/vpoint_socks_vmess.json \
 	| jq "(.inbounds[] | select( .protocol == \"socks\") | .listen) |= \"${LSTNADDR}\"" - \
 	| jq "(.inbounds[] | select( .protocol == \"socks\") | .port) |= \"${SOCKSPORT}\"" - \
 	| jq "(.inbounds[] | select( .protocol == \"socks\") | .settings.ip) |= \"0.0.0.0\"" - \
@@ -113,24 +113,24 @@ if [ -n "${WSPATH}" ]; then
 		| jq "(.outbounds[] | select( .protocol == \"vmess\")) +=  {\"streamSettings\":{\"network\":\"ws\",\"wsSettings\":{\"path\":\"${WSPATH}\"}}}" - \
 		>client-ws.json
 	mv client-ws.json client.json
+
+    cat client.json \
+        | jq "((.outbounds[] | select( .protocol == \"vmess\")) | .streamSettings) += {\"tlsSettings\":{\"serverName\":\"${SNI}\",\"allowInsecure\":false}}" - \
+        >client-ws.json
+    mv client-ws.json client.json
+
+    if [ -n "${NOSSL}" ]; then
+        cat client.json \
+            | jq "((.outbounds[] | select( .protocol == \"vmess\")) | .streamSettings) += {\"security\":\"none\"}" - \
+            >client-ws.json
+    else
+        cat client.json \
+            | jq "((.outbounds[] | select( .protocol == \"vmess\")) | .streamSettings) += {\"security\":\"tls\"}" - \
+            >client-ws.json
+    fi
+    mv client-ws.json client.json
 fi
 
-cat client.json \
-	| jq "((.outbounds[] | select( .protocol == \"vmess\")) | .streamSettings) += {\"tlsSettings\":{\"serverName\":\"${SNI}\",\"allowInsecure\":\"false\"}}" - \
-	>client-ws.json
-mv client-ws.json client.json
-
-if [ -n "${NOSSL}" ]; then
-	cat client.json \
-		| jq "((.outbounds[] | select( .protocol == \"vmess\")) | .streamSettings) += {\"security\":\"none\"}" - \
-		>client-ws.json
-else
-	cat client.json \
-		| jq "((.outbounds[] | select( .protocol == \"vmess\")) | .streamSettings) += {\"security\":\"tls\"}" - \
-		>client-ws.json
-fi
-mv client-ws.json client.json
-
-/usr/bin/nohup /usr/bin/v2ray/v2ray -config=/tmp/client.json &
-/root/polipo/polipo -c /root/polipo/config
+/usr/bin/nohup /usr/local/bin/v2ray -config=/etc/v2ray/client.json &
+polipo -c /etc/polipo.conf
 exec /usr/bin/dnscrypt-proxy -config /etc/dnscrypt-proxy/dnscrypt-proxy.toml
