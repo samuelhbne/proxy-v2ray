@@ -21,6 +21,8 @@ COPY --from=builder /tmp/v2ray/ /etc/v2ray/
 
 RUN mv /etc/v2ray/v2ray /usr/local/bin/
 RUN mv /etc/v2ray/v2ctl /usr/local/bin/
+RUN mv /etc/v2ray/geoip.dat /usr/local/bin/
+RUN mv /etc/v2ray/geosite.dat /usr/local/bin/
 
 RUN apk update && apk add bash openssl jq curl bind-tools whois \
 	dnscrypt-proxy proxychains-ng ca-certificates \
