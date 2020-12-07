@@ -13,7 +13,7 @@ STREAM_SECURITY=`cat /etc/v2ray/client.json|jq -r ' ."outbounds"[0]."streamSetti
 if [ "$STREAM_SECURITY" = "null" ]; then STREAM_SECURITY=""; fi
 
 V2RAYINFO="{}"
-V2RAYINFO=$( echo $V2RAYINFO| jq ". += {\"ps\":\"SERVER-V2RAY\"}" )
+V2RAYINFO=$( echo $V2RAYINFO| jq ". += {\"ps\":\"$ADDRESS:$PORT\"}" )
 V2RAYINFO=$( echo $V2RAYINFO| jq ". += {\"type\":\"none\"}" )
 V2RAYINFO=$( echo $V2RAYINFO| jq ". += {\"v\":\"2\"}" )
 V2RAYINFO=$( echo $V2RAYINFO| jq ". += {\"add\":\"$ADDRESS\"}" )
@@ -34,6 +34,7 @@ if [ -z "$STREAM_SECURITY" ] ; then
 else
         V2RAYINFO=$( echo $V2RAYINFO| jq ". += {\"tls\":\"$STREAM_SECURITY\"}" )
 fi
+
 
 V2RAYINFO=`echo $V2RAYINFO|jq -c|base64|tr -d '\n'`
 
