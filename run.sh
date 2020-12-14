@@ -13,7 +13,7 @@ usage() {
 	echo "    --no-ssl                          [Optional] Disable ssl support when connect via websocket, only for testing"
 }
 
-TEMP=`getopt -o h:u:p:l:a:s: --long host:,uuid:,port:,level:,alterid:,security:,wp:,no-ssl -n "$0" -- $@`
+TEMP=`getopt -o h:u:p:l:a:s: --long host:,uuid:,port:,level:,alterid:,security:,wp:,sni:,no-ssl -n "$0" -- $@`
 if [ $? != 0 ] ; then usage; exit 1 ; fi
 
 eval set -- "$TEMP"
