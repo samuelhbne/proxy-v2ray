@@ -1,5 +1,7 @@
 FROM arm32v6/golang:1.16-alpine as builder
 
+ARG V2VER='v4.40.1'
+
 RUN apk add --no-cache bash git build-base \
 	musl-dev openssl jq curl bind-tools whois \
 	dnscrypt-proxy autoconf automake wget \
@@ -10,6 +12,7 @@ RUN cd /tmp && git clone https://github.com/jech/polipo && cd polipo && make
 
 WORKDIR /go/src/v2ray.com/core
 RUN git clone --progress https://github.com/v2fly/v2ray-core.git . && \
+    git checkout ${V2VER} && \
     sed -i 's/^GOARCH=.*$/GOARCH=/g' release/user-package.sh && \
     bash ./release/user-package.sh nosource codename=$(git describe --tags) buildname=v2ray-vlp abpathtgz=/tmp/v2ray.tgz
 RUN mkdir -p /tmp/v2ray && tar xvf /tmp/v2ray.tgz -C /tmp/v2ray/
